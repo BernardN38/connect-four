@@ -10,7 +10,7 @@ let turn = 'yellow';
 let freeze = false;
 
 //creates a class for each slot in game and defines its properties and methods
-class tokenSlot {
+class TokenSlot {
 	constructor(position, id, x, y, color = 'none', filled = false) {
 		this.position = position;
 		this.id = parseInt(id);
