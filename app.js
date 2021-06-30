@@ -9,7 +9,7 @@ let turn = 'yellow';
 //blocks multiple click while one click is bing processed
 let freeze = false;
 
-//creates a class for each slot in game and define its properties and methods
+//creates a class for each slot in game and defines its properties and methods
 class tokenSlot {
 	constructor(position, id, x, y, color = 'none', filled = false) {
 		this.position = position;
