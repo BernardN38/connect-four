@@ -87,10 +87,10 @@ function animateDown(id, color) {
 			updateArray(currentId, color);
 			if (checkForWinRed()) {
 				clearInterval(interval);
-				return alert('red win');
+				return alert('Red wins!');
 			} else if (checkForWinYellow()) {
 				clearInterval(interval);
-				return alert('yellow win!');
+				return alert('Yellow wins!');
 			}
 			freeze = false;
 			return clearInterval(interval);
@@ -99,7 +99,7 @@ function animateDown(id, color) {
 		document.getElementById(nextId).classList.add(color);
 		nextId += 7;
 		currentId += 7;
-	}, 250);
+	}, 350);
 }
 
 
