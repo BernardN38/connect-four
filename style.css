@@ -1,8 +1,16 @@
 body {
-	background-color: wheat;
+	background-color: #a8dadc;
 	margin: 0 25%;
 }
-
+h1 {
+	text-align: center;
+	margin-left: 100px ;
+	font-size: 3rem;
+}
+p {
+	text-align: center;
+	font-size: larger;
+}
 .flex-grid-thirds {
 	display: flex;
 	justify-content: space-between;
@@ -44,10 +52,10 @@ body {
 	height: 70rem;
 	width: 110vh;
 	transform: scale(.75);
-	background-color: #6699cc;
+	background-color: #1d3557;
 	border: 7px solid black;
 	border-radius: 8px;
 	position: relative;
-	top: -5rem;
+	top: -8rem;
 }
 
