@@ -56,7 +56,7 @@ function assignIds() {
 	for (let x of gameContainer.children) {
 		Array.from(x.children).map((element) => {
 			element.id = counter;
-			tokenArray.push(new tokenSlot(element.id, element.id, counter % 7, x.classList[1]));
+			tokenArray.push(new TokenSlot(element.id, element.id, counter % 7, x.classList[1]));
 			counter++;
 		});
 	}
