@@ -51,7 +51,7 @@ p {
 #game-container {
 	height: 70rem;
 	width: 110vh;
-	transform: scale(.75);
+	transform: scale(.70);
 	background-color: #1d3557;
 	border: 7px solid black;
 	border-radius: 8px;
