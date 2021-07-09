@@ -1,124 +1,169 @@
 const gameContainer = document.querySelector('#game-container');
+const startButton = document.getElementById('start');
+const gridHeight = 7;
+const gridLength = 7;
 
-//this array will store all current properties for each slot in game
-const tokenArray = [];
-
-//keeps track of which players turn it is
 let turn = 'yellow';
+let gameStarted = 'false';
+let noClick = false;
+let table;
 
-//blocks multiple clicks while one click is bing processed
-let blockClicks = false;
+gameContainer.addEventListener('click', handleClick);
+startButton.addEventListener('click', initGame);
+class GameGrid {
+	constructor(height, length, parentContainer) {
+		this.height = height;
+		this.length = length;
+		this.container = parentContainer;
+		this.cells = [];
+	}
+	createElement(className) {
+		const element = document.createElement('div');
+		element.classList.add(className);
+		return element;
+	}
+	createColumns(className) {
+		let i = 0;
+		while (i < this.length) {
+			this.container.appendChild(this.createElement(className));
+			i++;
+		}
+	}
+	createRows(parentsClassName, rowClassName) {
+		const topRow = document.querySelectorAll(`.${parentsClassName}`);
+		let i = 0;
+		while (i < this.height) {
+			for (let member of topRow) {
+				member.appendChild(this.createElement(rowClassName));
+			}
+			i++;
+		}
+	}
+	addCordinatesCells() {
+		const cells = document.querySelectorAll('.row');
+		let x = 0;
+		let y = 1;
+		let id = 1;
+		for (let cell of cells) {
+			cell.setAttribute('data-x', x);
+			cell.setAttribute('data-y', y);
+			cell.setAttribute('id', id);
+			let newCell = new Cell(x, y, id);
+			newCell.add(newCell);
+			y++;
+			id++;
+			if (y > gridHeight) {
+				y = 1;
+				x++;
+			}
+		}
+	}
+}
 
-//creates a class for each slot in game and define its properties and methods
-class TokenSlot {
-	constructor(position, id, x, y, color = 'none', filled = false) {
-		this.position = position;
-		this.id = parseInt(id);
+class Cell {
+	constructor(x, y, id, color = 'none') {
+		this.x = x;
+		this.y = y;
+		this.id = id;
 		this.color = color;
-		this.filled = filled;
-		this.x = position + HEIGHT + 1;
-		this.y = parseInt(y);
 	}
-	// makes current token slot yellow and calls animation function, then switches turn
+	add(cell) {
+		table.cells.push(cell);
+	}
+	test() {
+		console.log('test works');
+	}
 	makeYellow() {
-		document.getElementById(this.id + HEIGHT + 1).classList.add('yellow');
-		animateDown(this.id, 'yellow');
-		turn = 'red';
+		document.getElementById(this.id).classList.add('yellow');
 	}
-	// makes current token slot yellow and calls animation function, then switches turn
 	makeRed() {
-		document.getElementById(this.id + HEIGHT +1).classList.add('red');
-		animateDown(this.id, 'red');
+		document.getElementById(this.id).classList.add('red');
+	}
+	removeColor() {
+		document.getElementById(this.id).classList.remove('red', 'yellow');
+	}
+	getCellElement() {
+		let element = document.getElementById(this.id);
+	}
+}
+
+function initGame() {
+	if (gameStarted === true) return;
+	table = new GameGrid(gridHeight, gridLength, gameContainer);
+	table.createColumns('column');
+	table.createRows('column', 'row');
+	table.addCordinatesCells();
+	gameStarted = true;
+}
+
+function animateCellDrop() {
+	if (noClick === true) return;
+	noClick = true;
+	let clickTarget = event.target;
+	let { id, dataset } = clickTarget;
+	let { x, y } = dataset;
+	id = parseInt(id);
+	x = parseInt(x);
+	y = parseInt(y);
+
+	setInterval(function() {
+		let previousCell = table.cells.find((cell) => cell.x === x && cell.y === y);
+		let nextCell = table.cells.find((cell) => cell.x === x && cell.y === y + 1);
+		if (nextCell === undefined || nextCell.color != 'none') {
+			return clearInterval();
+		}
+		nextCell.color = turn;
+		previousCell.color = 'none';
+		previousCell.removeColor();
+		if (turn == 'red') {
+			nextCell.makeRed();
+		} else {
+			nextCell.makeYellow();
+		}
+		y++;
+	}, 200);
+}
+
+function switchTurn() {
+	if (turn === 'yellow') {
+		turn = 'red';
+	} else {
 		turn = 'yellow';
 	}
 }
 
-//validates click and calls class method depending on which players turn
-function handleClick(event) {
-	if (event.target.classList[0] != 'col') return;
-	const id = event.target.id;
-	if (id > 6) return;
-	if (blockClicks) return;
-	blockClicks = true;
-	if (turn === 'yellow') return tokenArray[id].makeYellow();
-	if (turn === 'red') return tokenArray[id].makeRed();
+function handleClick() {
+	if (noClick === true) return;
+	animateCellDrop();
+	switchTurn();
+	setTimeout(() => {
+		handleWin();
+	}, 900);
 }
 
-// asign each div a unique id and pushes to tokenArray with its prperties
-function assignIds() {
-	let counter = 0;
-	for (let x of gameContainer.children) {
-		Array.from(x.children).map((element) => {
-			element.id = counter;
-			tokenArray.push(new TokenSlot(element.id, element.id, counter % 7, x.classList[1]));
-			counter++;
-		});
+function handleWin() {
+	if (checkWin('red')) {
+		alert('red wins');
+	} else if (checkWin('yellow')) {
+		alert('yellow wins');
+	} else {
+		noClick = false;
 	}
 }
-
-//tracks changes in slots when a token is places. Updates propeties in tokenArray
-function updateArray(id, color) {
-	tokenArray[id].color = color;
-	tokenArray[id].filled = true;
-}
-
-//animates a token when it is placed in a slot and checks for winner after turn(ends game)
-function animateDown(id, color) {
-	//sets ids for drop down animation starts at 7 to account for top row
-	let currentId = id + HEIGHT +1;
-	let nextId = id + (HEIGHT *2) +2;
-
-	let animationInterval = setInterval(() => {
-		//validates input, stops interval when reaches end of range, waits for previous animation to stop then allows next input
-		if (nextId > 48) {
-			updateArray(currentId, color);
-			blockClicks = false;
-			return clearInterval(animationInterval);
-		}
-
-		//stops animation if next element is filled, checks for win
-		if (
-			document.getElementById(nextId).classList[1] === 'red' ||
-			document.getElementById(nextId).classList[1] === 'yellow'
-		) {
-			updateArray(currentId, color);
-			if (checkWin('red')) {
-				clearInterval(animationInterval);
-				return alert('Red wins!');
-			} else if (checkWin('yellow')) {
-				clearInterval(animationInterval);
-				return alert('Yellow wins!');
-			}
-			blockClicks = false;
-			return clearInterval(animationInterval);
-		}
-
-		// removes color from current element and adds color to next element with css class
-		document.getElementById(currentId).classList.remove(color);
-		document.getElementById(nextId).classList.add(color);
-		//prepares ids for next iteration
-		nextId += HEIGHT + 1;
-		currentId += HEIGHT + 1;
-	}, 200);
-}
-
-//checks if winning conditions are met by looping over every possible winning scenerio depending on grid size
-//modified from provided code
-const WIDTH = 6;
-const HEIGHT = 6;
 
 function checkWin(color) {
 	function _win(cells) {
 		// Check four cells to see if they're all color of current player
 		//  - cells: list of four (y, x) cells
 		//  - returns true if all are legal coordinates & all match currPlayer
+
 		return cells.every(
-			([ y, x ]) => y >= 0 && y <= HEIGHT && x >= 0 && x <= WIDTH && tokenArray[y * 7 + x].color === color
+			([ y, x ]) => y >= 0 && y < gridHeight && x >= 0 && x < gridLength && table.cells[x * 7 + y].color === color
 		);
 	}
 
-	for (let y = 0; y <= HEIGHT; y++) {
-		for (let x = 0; x <= WIDTH; x++) {
+	for (let y = 0; y <= gridHeight; y++) {
+		for (let x = 0; x <= gridLength; x++) {
 			// get "check list" of 4 cells (starting here) for each of the different
 			// ways to win
 			const horiz = [ [ y, x ], [ y, x + 1 ], [ y, x + 2 ], [ y, x + 3 ] ];
@@ -128,16 +173,9 @@ function checkWin(color) {
 
 			// find winner (only checking each win-possibility as needed)
 			if (_win(horiz) || _win(vert) || _win(diagDR) || _win(diagDL)) {
+				console.log('winner');
 				return true;
 			}
 		}
 	}
 }
-
-
-function init(){
-	assignIds();
-	gameContainer.addEventListener('click', handleClick);
-}
-
-init()
